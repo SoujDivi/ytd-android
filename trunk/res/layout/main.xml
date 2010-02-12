@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@+id/RelativeLayout01"
+  android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/MessageTextView"></TextView>
+  <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:layout_below="@+id/MessageTextView"
+    android:layout_toRightOf="@+id/LogoutButton" android:id="@+id/UploadButton" android:text="Record" android:onClick="onUploadClick"></Button>
+  <ProgressBar android:layout_below="@+id/MessageTextView" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/UploadProgressBar" android:visibility="invisible" android:layout_toRightOf="@+id/ResumeButton"></ProgressBar><Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_below="@+id/MessageTextView" android:text="Resume Upload" android:id="@+id/ResumeButton" android:layout_toRightOf="@+id/UploadButton" android:onClick="onResumeClick"></Button><Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/LogoutButton" android:layout_below="@+id/MessageTextView"
+    android:layout_toRightOf="@+id/LoginButton" android:onClick="onLogoutClick" android:text="Log Out"></Button>
+  <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/LoginButton"
+    android:layout_below="@+id/MessageTextView" android:onClick="onLoginClick" android:text="Log In"></Button>
+    
+
+
+
+<TextView android:layout_below="@+id/LoginButton" android:text="By clicking 'upload,' you certify that you own all rights to the content or that you are authorized by the owner to make the content publicly available on YouTube, and that it otherwise complies with the YouTube Terms of Service located at http://m.youtube.com/terms" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/YouTubeTOS" android:autoLink="web" android:linksClickable="true" android:textSize="8dip"></TextView>
+</RelativeLayout>
