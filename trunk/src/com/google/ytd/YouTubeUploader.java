@@ -42,7 +42,7 @@ public class YouTubeUploader {
   private static final String TAG = "YouTubeUploader";
   private static final int CHUNK_SIZE = 512 * 1024; //512kb
   //TODO: Change this from staging server once resumable uploads goes live.
-  private static final String INITIAL_UPLOAD_URL = "http://uploads.stage.gdata.youtube.com/resumable/feeds/api/users/default/uploads";
+  private static final String INITIAL_UPLOAD_URL = "http://uploads.gdata.youtube.com/resumable/feeds/api/users/default/uploads";
   private static final String ATOM_FORMAT = "<?xml version=\"1.0\"?> <entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:media=\"http://search.yahoo.com/mrss/\" xmlns:yt=\"http://gdata.youtube.com/schemas/2007\"> <media:group> <media:title type=\"plain\">%s</media:title> <media:description type=\"plain\">%s</media:description> <media:category scheme=\"http://gdata.youtube.com/schemas/2007/categories.cat\">%s</media:category> <media:keywords>%s</media:keywords> </media:group> </entry>";
   private static final String ATOM_GEO_FORMAT = "<?xml version=\"1.0\"?> <entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:media=\"http://search.yahoo.com/mrss/\" xmlns:yt=\"http://gdata.youtube.com/schemas/2007\"> <media:group> <media:title type=\"plain\">%s</media:title> <media:description type=\"plain\">%s</media:description> <media:category scheme=\"http://gdata.youtube.com/schemas/2007/categories.cat\">%s</media:category> <media:keywords>%s</media:keywords> </media:group> <georss:where xmlns:georss=\"http://www.georss.org/georss\" xmlns:gml=\"http://www.opengis.net/gml\"><gml:Point xmlns:gml=\"http://www.opengis.net/gml\"><gml:pos>%f %f</gml:pos></gml:Point></georss:where> </entry>";
   private static final int UNKNOWN_SIZE = -1;
