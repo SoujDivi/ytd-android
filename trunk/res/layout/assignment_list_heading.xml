@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent">
+	<TextView android:id="@+id/heading_title"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:background="@color/light_gray" android:layout_marginLeft="5px"
+		android:layout_marginRight="9px" android:padding="3px" android:textSize="12px"
+		android:textColor="@color/white" android:enabled="false" android:clickable="false"/>
+</LinearLayout>

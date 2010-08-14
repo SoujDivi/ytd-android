@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent">
+	<TextView android:id="@+id/time" android:layout_width="70px"
+		android:layout_height="wrap_content"
+		android:textColor="@color/dark_gray" android:paddingRight="5px"
+		android:layout_marginLeft="5px" android:paddingLeft="5px"
+		android:textSize="12px" />
+
+	<TextView android:id="@+id/description" android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:minHeight="50px"
+		android:textColor="@color/black" android:paddingRight="10px"
+		android:paddingLeft="5px" android:textSize="15px"
+		android:layout_toRightOf="@id/time" />
+</RelativeLayout>
