@@ -6,4 +6,7 @@ More information about YouTube Direct can be found at
 
   http://code.google.com/p/youtube-direct/
 
+Before building the application, make sure to update constants in
+res/values/strings.xml (look for TODOs in that file).   
+
 This project is a work in progress.
