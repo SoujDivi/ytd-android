@@ -85,6 +85,9 @@ public class SubmitActivity extends Activity {
 
   private static final int DIALOG_LEGAL = 0;
 
+  private static final int MAX_RETRIES = 5;
+  private static final int BACKOFF = 4; // base of exponential backoff
+
   private ProgressDialog dialog = null;
   private DbHelper dbHelper = null;
   private String ytdDomain = null;
@@ -103,6 +106,8 @@ public class SubmitActivity extends Activity {
 
   private double currentFileSize = 0;
   private double totalBytesUploaded = 0;
+  private int numberOfRetries = 0;
+
 
   static class YouTubeAccountException extends Exception {
     public YouTubeAccountException(String msg) {
@@ -361,6 +366,14 @@ public class SubmitActivity extends Activity {
           bundle.putString("error", e.getMessage());
           handler.sendMessage(msg);
           return;
+        } catch (SAXException e) {
+          e.printStackTrace();
+          bundle.putString("error", e.getMessage());
+          handler.sendMessage(msg);
+        } catch (ParserConfigurationException e) {
+          e.printStackTrace();  
+          bundle.putString("error", e.getMessage());
+          handler.sendMessage(msg);
         }
 
         bundle.putString("videoId", videoId);
@@ -384,7 +397,7 @@ public class SubmitActivity extends Activity {
     return file;
   }
 
-  private String startUpload(Uri uri) throws IOException, YouTubeAccountException {
+  private String startUpload(Uri uri) throws IOException, YouTubeAccountException, SAXException, ParserConfigurationException {
     File file = getFileFromUri(uri);
 
     if (this.clientLoginToken == null) {
@@ -395,6 +408,8 @@ public class SubmitActivity extends Activity {
     String uploadUrl = uploadMetaData(file.getAbsolutePath(), true);
 
     Log.d(LOG_TAG, "uploadUrl=" + uploadUrl);
+    Log.d(LOG_TAG, String.format("Client token : %s ",this.clientLoginToken));
+      
 
     this.currentFileSize = file.length();
 
@@ -411,12 +426,40 @@ public class SubmitActivity extends Activity {
       } else {
         end = start + (int) fileSize - 1;
       }
-      fileSize -= uploadChunk;
-      // Log.d(LOG_TAG, String.format("start=%s end=%s total=%s", start, end,
-      // file.length()));
-
-      videoId = gdataUpload(file, uploadUrl, start, end);
-      start = end + 1;
+      Log.d(LOG_TAG, String.format("start=%s end=%s total=%s", start, end, file.length()));
+      try {
+        videoId = gdataUpload(file, uploadUrl, start, end);
+        fileSize -= uploadChunk;
+        start = end + 1;
+        this.numberOfRetries = 0; // clear this counter as we had a succesfull upload
+      } catch (IOException e) {
+        Log.d(LOG_TAG,"Error during upload : " + e.getMessage());
+        ResumeInfo resumeInfo = null;
+        do {
+          if (!shouldResume()) {
+            Log.d(LOG_TAG, String.format("Giving up uploading '%s'.", uploadUrl));
+            throw e;
+          }
+          try {
+            resumeInfo = resumeFileUpload(uploadUrl);
+          } catch (IOException re) {
+            // ignore
+            Log.d(LOG_TAG, String.format("Failed retry attempt of : %s due to: '%s'.", uploadUrl, re.getMessage()));
+          }
+        } while (resumeInfo == null);
+        Log.d(LOG_TAG, String.format("Resuming stalled upload to: %s.", uploadUrl));
+        if (resumeInfo.videoId != null) { // upload actually complted despite the exception
+          videoId = resumeInfo.videoId;
+          Log.d(LOG_TAG, String.format("No need to resume video ID '%s'.", videoId));          
+          break;
+        } else {
+          int nextByteToUpload = resumeInfo.nextByteToUpload;
+          Log.d(LOG_TAG, String.format("Next byte to upload is '%d'.", nextByteToUpload));
+          this.totalBytesUploaded = nextByteToUpload; // possibly rolling back the previosuly saved value
+          fileSize = this.currentFileSize - nextByteToUpload;
+          start = nextByteToUpload;
+        }
+      }
     }
 
     if (videoId != null) {
@@ -482,13 +525,13 @@ public class SubmitActivity extends Activity {
     FileInputStream fileStream = new FileInputStream(file);
 
     HttpURLConnection urlConnection = getGDataUrlConnection(uploadUrl);
-
-    urlConnection.setRequestMethod("POST");
+    urlConnection.setRequestMethod("PUT");
     urlConnection.setDoOutput(true);
     urlConnection.setFixedLengthStreamingMode(chunk);
     urlConnection.setRequestProperty("Content-Type", "video/3gpp");
     urlConnection.setRequestProperty("Content-Range", String.format("bytes %d-%d/%d", start, end,
         file.length()));
+    Log.d(LOG_TAG, urlConnection.getRequestProperty("Content-Range"));
 
     OutputStream outStreamWriter = urlConnection.getOutputStream();
 
@@ -541,6 +584,9 @@ public class SubmitActivity extends Activity {
           String error = String.format("responseCode=%d responseMessage=%s", responseCode,
               urlConnection.getResponseMessage());
           Log.d(LOG_TAG, error);
+          // TODO - this exception will trigger retry mechanism to kick in
+          // TODO - even though it should not, consider introducing a new type so
+          // TODO - resume does not kick in upon 5xx
           throw new IOException(error);
         }
       }
@@ -551,6 +597,58 @@ public class SubmitActivity extends Activity {
     }
 
     return null;
+  }
+
+  private ResumeInfo resumeFileUpload(String uploadUrl) throws IOException, ParserConfigurationException, SAXException {
+    HttpURLConnection urlConnection = getGDataUrlConnection(uploadUrl);
+    urlConnection.setRequestProperty("Content-Range", "bytes */*");
+    urlConnection.setRequestMethod("PUT");
+    urlConnection.setFixedLengthStreamingMode(0);
+
+    HttpURLConnection.setFollowRedirects(false);
+
+    urlConnection.connect();
+    int responseCode = urlConnection.getResponseCode();
+
+    if (responseCode >= 300 && responseCode < 400) {
+      int nextByteToUpload;
+      String range = urlConnection.getHeaderField("Range");
+      if (range == null) {
+        Log.d(LOG_TAG, String.format("PUT to %s did not return 'Range' header.", uploadUrl));
+        nextByteToUpload = 0;
+      } else {
+        Log.d(LOG_TAG, String.format("Range header is '%s'.", range));
+        String[] parts = range.split("-");
+        if (parts.length > 1) {
+          nextByteToUpload = Integer.parseInt(parts[1]) + 1;
+        } else {
+          nextByteToUpload = 0;
+        }
+      }
+      return new ResumeInfo(nextByteToUpload);
+    } else if (responseCode >= 200 && responseCode < 300) {
+      return new ResumeInfo(parseVideoId(urlConnection.getInputStream()));
+    } else {
+      throw new IOException(String.format("Unexpected response for PUT to %s: %s " +
+      		"(code %d)", uploadUrl, urlConnection.getResponseMessage(), responseCode));
+    }
+  }
+
+  private boolean shouldResume() {
+    this.numberOfRetries++;
+    if (this.numberOfRetries>MAX_RETRIES) {
+      return false;
+    }
+    try {
+      int sleepSeconds = (int) Math.pow(BACKOFF, this.numberOfRetries);
+      Log.d(LOG_TAG,String.format("Zzzzz for : %d sec.", sleepSeconds));
+      Thread.currentThread().sleep(sleepSeconds * 1000);
+      Log.d(LOG_TAG,String.format("Zzzzz for : %d sec done.", sleepSeconds));      
+    } catch (InterruptedException se) {
+      se.printStackTrace();
+      return false;
+    }
+    return true;
   }
 
   private String parseVideoId(InputStream atomDataStream) throws ParserConfigurationException,
@@ -573,7 +671,6 @@ public class SubmitActivity extends Activity {
   private HttpURLConnection getGDataUrlConnection(String urlString) throws IOException {
     URL url = new URL(urlString);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    Log.d(LOG_TAG, clientLoginToken);
     connection.setRequestProperty("Authorization", String.format("GoogleLogin auth=\"%s\"",
         clientLoginToken));
     connection.setRequestProperty("GData-Version", "2");
@@ -692,4 +789,14 @@ public class SubmitActivity extends Activity {
     }
   }
 
+  class ResumeInfo {
+    int nextByteToUpload;
+    String videoId;
+    ResumeInfo(int nextByteToUpload) {
+      this.nextByteToUpload = nextByteToUpload;
+    }
+    ResumeInfo(String videoId) {
+      this.videoId = videoId;
+    }
+  }
 }
