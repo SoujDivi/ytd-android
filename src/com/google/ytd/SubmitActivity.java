@@ -24,9 +24,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -103,7 +101,7 @@ public class SubmitActivity extends Activity {
   private LocationManager locationManager = null;
   private SharedPreferences preferences = null;
   private TextView domainHeader = null;
-
+  // TODO - replace these counters with a state variable
   private double currentFileSize = 0;
   private double totalBytesUploaded = 0;
   private int numberOfRetries = 0;
@@ -354,8 +352,24 @@ public class SubmitActivity extends Activity {
         msg.setData(bundle);
 
         String videoId = null;
+        int submitCount=0;
         try {
-          videoId = startUpload(uri);
+          while (submitCount<=MAX_RETRIES && videoId == null) {
+            try {
+              submitCount++;
+              videoId = startUpload(uri);
+              assert videoId!=null;
+            } catch (Internal500ResumeException e500) { // TODO - this should not really happen
+              if (submitCount<MAX_RETRIES) {
+                Log.w(LOG_TAG, e500.getMessage());
+                Log.d(LOG_TAG, String.format("Upload retry :%d.",submitCount));
+              } else {
+                Log.d(LOG_TAG, "Giving up");
+                Log.e(LOG_TAG, e500.getMessage());
+                throw new IOException(e500.getMessage());
+              }
+            }
+          }
         } catch (IOException e) {
           e.printStackTrace();
           bundle.putString("error", e.getMessage());
@@ -397,7 +411,7 @@ public class SubmitActivity extends Activity {
     return file;
   }
 
-  private String startUpload(Uri uri) throws IOException, YouTubeAccountException, SAXException, ParserConfigurationException {
+  private String startUpload(Uri uri) throws IOException, YouTubeAccountException, SAXException, ParserConfigurationException, Internal500ResumeException {
     File file = getFileFromUri(uri);
 
     if (this.clientLoginToken == null) {
@@ -412,6 +426,8 @@ public class SubmitActivity extends Activity {
       
 
     this.currentFileSize = file.length();
+    this.totalBytesUploaded = 0;
+    this.numberOfRetries = 0;
 
     int uploadChunk = 1024 * 1024 * 3; // 3MB
 
@@ -525,7 +541,7 @@ public class SubmitActivity extends Activity {
     FileInputStream fileStream = new FileInputStream(file);
 
     HttpURLConnection urlConnection = getGDataUrlConnection(uploadUrl);
-    urlConnection.setRequestMethod("PUT");
+    urlConnection.setRequestMethod("POST");
     urlConnection.setDoOutput(true);
     urlConnection.setFixedLengthStreamingMode(chunk);
     urlConnection.setRequestProperty("Content-Type", "video/3gpp");
@@ -546,9 +562,11 @@ public class SubmitActivity extends Activity {
 
       double percent = (totalBytesUploaded / currentFileSize) * 99;
 
-      // Log.d(LOG_TAG, String.format(
-      // "fileSize=%f totalBytesUploaded=%f percent=%f", currentFileSize,
-      // totalBytesUploaded, percent));
+      /*
+      Log.d(LOG_TAG, String.format(
+      "fileSize=%f totalBytesUploaded=%f percent=%f", currentFileSize,
+      totalBytesUploaded, percent));
+      */
 
       dialog.setProgress((int) percent);
 
@@ -579,6 +597,15 @@ public class SubmitActivity extends Activity {
             getDescriptionText(), this.dateTaken, latLng, this.tags);
         dialog.setProgress(100);
         return videoId;
+      } else if (responseCode == 200) {
+        Set<String> keySet = urlConnection.getHeaderFields().keySet();
+        String keys = urlConnection.getHeaderFields().keySet().toString();
+        Log.d(LOG_TAG, String.format("Headers keys %s.", keys));
+        for (String key : keySet) {
+          Log.d(LOG_TAG, String.format("Header key %s value %s.", key, urlConnection.getHeaderField(key)));          
+        }
+        throw new IOException(String.format("Unexpected response code : responseCode=%d responseMessage=%s", responseCode,
+              urlConnection.getResponseMessage()));
       } else {
         if ((responseCode + "").startsWith("5")) {
           String error = String.format("responseCode=%d responseMessage=%s", responseCode,
@@ -588,6 +615,14 @@ public class SubmitActivity extends Activity {
           // TODO - even though it should not, consider introducing a new type so
           // TODO - resume does not kick in upon 5xx
           throw new IOException(error);
+        } else if (responseCode == 308) {
+          // OK, the chunk completed succesfully 
+          Log.d(LOG_TAG, String.format("responseCode=%d responseMessage=%s", responseCode,
+              urlConnection.getResponseMessage()));
+        } else {
+          // TODO - this case is not handled properly yet
+          Log.w(LOG_TAG, String.format("Unexpected return code : %d %s while uploading :%s", responseCode,
+            urlConnection.getResponseMessage(), uploadUrl));
         }
       }
     } catch (ParserConfigurationException e) {
@@ -599,7 +634,7 @@ public class SubmitActivity extends Activity {
     return null;
   }
 
-  private ResumeInfo resumeFileUpload(String uploadUrl) throws IOException, ParserConfigurationException, SAXException {
+  private ResumeInfo resumeFileUpload(String uploadUrl) throws IOException, ParserConfigurationException, SAXException, Internal500ResumeException {
     HttpURLConnection urlConnection = getGDataUrlConnection(uploadUrl);
     urlConnection.setRequestProperty("Content-Range", "bytes */*");
     urlConnection.setRequestMethod("PUT");
@@ -628,11 +663,16 @@ public class SubmitActivity extends Activity {
       return new ResumeInfo(nextByteToUpload);
     } else if (responseCode >= 200 && responseCode < 300) {
       return new ResumeInfo(parseVideoId(urlConnection.getInputStream()));
+    } else if (responseCode == 500) {
+      // TODO this is a workaround for current problems with resuming uploads while switching transport (Wifi->EDGE)
+      throw new Internal500ResumeException(String.format("Unexpected response for PUT to %s: %s " +
+      		"(code %d)", uploadUrl, urlConnection.getResponseMessage(), responseCode));
     } else {
       throw new IOException(String.format("Unexpected response for PUT to %s: %s " +
       		"(code %d)", uploadUrl, urlConnection.getResponseMessage(), responseCode));
     }
   }
+
 
   private boolean shouldResume() {
     this.numberOfRetries++;
@@ -797,6 +837,15 @@ public class SubmitActivity extends Activity {
     }
     ResumeInfo(String videoId) {
       this.videoId = videoId;
+    }
+  }
+
+  /**
+   * Need this for now to trigger entire upload transaction retry
+   */
+  class Internal500ResumeException extends Exception {
+    Internal500ResumeException(String message) {
+      super(message);
     }
   }
 }
