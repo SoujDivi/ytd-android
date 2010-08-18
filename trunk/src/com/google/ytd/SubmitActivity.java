@@ -541,7 +541,16 @@ public class SubmitActivity extends Activity {
     FileInputStream fileStream = new FileInputStream(file);
 
     HttpURLConnection urlConnection = getGDataUrlConnection(uploadUrl);
-    urlConnection.setRequestMethod("POST");
+    // some mobile proxies do not support PUT, using X-HTTP-Method-Override to get around this problem
+    if (isFirstRequest()) {
+      Log.d(LOG_TAG, String.format("Uploaded %d bytes so far, using POST method.", (int)totalBytesUploaded));
+      urlConnection.setRequestMethod("POST");
+    } else {
+      urlConnection.setRequestMethod("POST");
+      urlConnection.setRequestProperty("X-HTTP-Method-Override", "PUT");
+      Log.d(LOG_TAG, String.format("Uploaded %d bytes so far, using POST with X-HTTP-Method-Override PUT method.",
+        (int)totalBytesUploaded));
+    }
     urlConnection.setDoOutput(true);
     urlConnection.setFixedLengthStreamingMode(chunk);
     urlConnection.setRequestProperty("Content-Type", "video/3gpp");
@@ -604,13 +613,14 @@ public class SubmitActivity extends Activity {
         for (String key : keySet) {
           Log.d(LOG_TAG, String.format("Header key %s value %s.", key, urlConnection.getHeaderField(key)));          
         }
+        Log.w(LOG_TAG, "Received 200 response during resumable uploading");
         throw new IOException(String.format("Unexpected response code : responseCode=%d responseMessage=%s", responseCode,
               urlConnection.getResponseMessage()));
       } else {
         if ((responseCode + "").startsWith("5")) {
           String error = String.format("responseCode=%d responseMessage=%s", responseCode,
               urlConnection.getResponseMessage());
-          Log.d(LOG_TAG, error);
+          Log.w(LOG_TAG, error);
           // TODO - this exception will trigger retry mechanism to kick in
           // TODO - even though it should not, consider introducing a new type so
           // TODO - resume does not kick in upon 5xx
@@ -634,10 +644,15 @@ public class SubmitActivity extends Activity {
     return null;
   }
 
+  public boolean isFirstRequest() {
+    return totalBytesUploaded==0;
+  }
+
   private ResumeInfo resumeFileUpload(String uploadUrl) throws IOException, ParserConfigurationException, SAXException, Internal500ResumeException {
     HttpURLConnection urlConnection = getGDataUrlConnection(uploadUrl);
     urlConnection.setRequestProperty("Content-Range", "bytes */*");
-    urlConnection.setRequestMethod("PUT");
+    urlConnection.setRequestMethod("POST");
+    urlConnection.setRequestProperty("X-HTTP-Method-Override", "PUT");
     urlConnection.setFixedLengthStreamingMode(0);
 
     HttpURLConnection.setFollowRedirects(false);
