@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style
+    name="YtdTheme"
+    parent="android:Theme.Light.NoTitleBar">
+    <item
+      name="android:windowBackground">@color/white</item>
+    <item
+      name="android:colorBackground">@color/white</item>
+    <item
+      name="android:panelColorBackground">@color/white</item>
+  </style>
+</resources>
