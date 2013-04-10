@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="intro_msg">Please configure your news source and account information.</string>
+    <string name="app_name">YouTube Direct</string>
+    <string name="domain_prompt">Choose a news source</string>
+    <string name="yt_account_prompt">Choose your Google/YouTube account</string>
+    <string name="dev_key">"TODO-dev-key"</string>
+    <string name="client_id">TODO-client-ID</string>
+    <string name="default_ytd_domain">TODO-appname.appspot.com</string>
+    <string name="default_ytd_domain_name">TODO-name - e.g. San Francisco Bay Area</string>
+</resources>
