@@ -85,21 +85,6 @@
             </exclusions>
             <scope>provided</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>com.google.android</groupId>
-			<artifactId>support-v4</artifactId>
-			<version>${android.support.version}</version>
-<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.android.youtube</groupId>
-			<artifactId>player</artifactId>
-			<version>1.0.0</version>
-			<scope>provided</scope>
-		</dependency>
-
 	</dependencies>
 
 	<build>
@@ -306,18 +291,6 @@
 		</profile>
 	</profiles>
 </project>
-
-
-
-<dependencies>
-
-	<dependency>
-		<groupId>com.google.android.youtube</groupId>
-		<artifactId>player</artifactId>
-		<version>1.0.0</version>
-		<scope>provided</scope>
-	</dependency>
-</dependencies>
 
 <build>
 	<plugins>

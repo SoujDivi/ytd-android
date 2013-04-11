@@ -92,7 +92,7 @@ public class ResumableUpload {
       // Set your keywords.
       List<String> tags = new ArrayList<String>();
       tags.add("ytdl");
-      tags.add(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_CHANNEL));
+      tags.add(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_PLAYLIST));
       snippet.setTags(tags);
 
       // Set completed snippet to the video object.
