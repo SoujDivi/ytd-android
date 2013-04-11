@@ -108,7 +108,7 @@ public class DirectFragment extends Fragment implements
 
   public void directLite(final VideoData video, final String token) {
     video.addTag("ytdl");
-    video.addTag(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_CHANNEL));
+    video.addTag(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_PLAYLIST));
 
     new AsyncTask<Void, Void, Void>() {
       @Override
