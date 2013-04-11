@@ -15,5 +15,5 @@
 package com.google.ytdl;
 
 public class Auth {
-  public static final String KEY = "REPLACE ME";
+  public static final String KEY = "REPLACE with the Android API Key in your Devconsole";
 }
