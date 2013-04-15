@@ -73,17 +73,17 @@
 			<groupId>com.google.android</groupId>
 			<artifactId>android</artifactId>
 			<version>${android.version}</version>
-			        <exclusions>
-            <exclusion>
-                <artifactId>xmlParserAPIs</artifactId>
-                <groupId>xerces</groupId>
-            </exclusion>		
+			<exclusions>
+				<exclusion>
+					<artifactId>xmlParserAPIs</artifactId>
+					<groupId>xerces</groupId>
+				</exclusion>
 				<exclusion>
 					<artifactId>xpp3</artifactId>
 					<groupId>xpp3</groupId>
-				</exclusion>            
-            </exclusions>
-            <scope>provided</scope>
+				</exclusion>
+			</exclusions>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
