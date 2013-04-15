@@ -65,7 +65,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-
 /**
  * @author Ibrahim Ulukaya <ulukaya@google.com>
  * 
@@ -186,28 +185,28 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case R.id.action_sign_in:
-        authenticate();
-        return true;
-      case R.id.action_refresh:
-        loadData();
-        return true;
-      case R.id.action_sign_out:
-        mToken = null;
-        mChosenAccountName = null;
-        mUploadsListFragment.setVideos(new ArrayList<VideoData>());
-        mUploadsListFragment.setProfileInfo(null);
-        saveAccount();
-        invalidateOptionsMenu();
-        return true;
-      case R.id.action_youtube:
-        if (mVideoData != null) {
-          Intent intent = new Intent(Intent.ACTION_VIEW);
-          intent.setData(Uri.parse("http://www.youtube.com/watch?v=" + mVideoData.getYouTubeId()));
-          startActivity(intent);
-        }
-        return true;
+    int id = item.getItemId();
+    if (id == R.id.action_sign_in) {
+      authenticate();
+      return true;
+    } else if (id == R.id.action_refresh) {
+      loadData();
+      return true;
+    } else if (id == R.id.action_sign_out) {
+      mToken = null;
+      mChosenAccountName = null;
+      mUploadsListFragment.setVideos(new ArrayList<VideoData>());
+      mUploadsListFragment.setProfileInfo(null);
+      saveAccount();
+      invalidateOptionsMenu();
+      return true;
+    } else if (id == R.id.action_youtube) {
+      if (mVideoData != null) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("http://www.youtube.com/watch?v=" + mVideoData.getYouTubeId()));
+        startActivity(intent);
+      }
+      return true;
     }
     return super.onOptionsItemSelected(item);
   }
@@ -393,12 +392,12 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
         try {
           ChannelListResponse clr = yt.channels().list("contentDetails").setMine(true).execute();
-          String favoritesPlaylistId =
+          String uploadsPlaylistId =
               clr.getItems().get(0).getContentDetails().getRelatedPlaylists().getUploads();
 
           List<VideoData> videos = new ArrayList<VideoData>();
           PlaylistItemListResponse pilr =
-              yt.playlistItems().list("id,contentDetails").setPlaylistId(favoritesPlaylistId)
+              yt.playlistItems().list("id,contentDetails").setPlaylistId(uploadsPlaylistId)
                   .setMaxResults(20l).execute();
           List<String> videoIds = new ArrayList<String>();
           for (PlaylistItem item : pilr.getItems()) {
@@ -406,11 +405,14 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
           }
 
           VideoListResponse vlr =
-              yt.videos().list(TextUtils.join(",", videoIds), "id,snippet").execute();
+              yt.videos().list(TextUtils.join(",", videoIds), "id,snippet,status").execute();
+
           for (Video video : vlr.getItems()) {
-            VideoData videoData = new VideoData();
-            videoData.setVideo(video);
-            videos.add(videoData);
+            if ("public".equals(video.getStatus().getPrivacyStatus())) {
+              VideoData videoData = new VideoData();
+              videoData.setVideo(video);
+              videos.add(videoData);
+            }
           }
 
           Collections.sort(videos, new Comparator<VideoData>() {
