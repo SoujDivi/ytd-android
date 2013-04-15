@@ -61,7 +61,7 @@ public class ResumableUpload {
         (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
     mBuilder.setContentTitle("YouTube Upload").setContentText("Direct Lite upload started")
-        .setSmallIcon(R.drawable.youtube);
+        .setSmallIcon(R.drawable.icon);
     String videoId = null;
     try {
       // Add extra information to the video before uploading.

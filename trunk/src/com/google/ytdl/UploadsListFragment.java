@@ -25,7 +25,9 @@ import com.google.ytdl.util.VideoData;
 
 import android.app.Activity;
 import android.app.ListFragment;
+import android.content.IntentSender;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,171 +38,187 @@ import android.widget.Toast;
 
 import java.util.List;
 
-
 /**
  * @author Ibrahim Ulukaya <ulukaya@google.com>
  * 
  *         Left side fragment showing user's uploaded YouTube videos.
  */
 public class UploadsListFragment extends ListFragment implements
-    GooglePlayServicesClient.ConnectionCallbacks,
-    GooglePlayServicesClient.OnConnectionFailedListener {
+		GooglePlayServicesClient.ConnectionCallbacks,
+		GooglePlayServicesClient.OnConnectionFailedListener {
 
-  private Callbacks mCallbacks;
-  private ImageWorker mImageFetcher;
-  private PlusClient mPlusClient;
+	private Callbacks mCallbacks;
+	private ImageWorker mImageFetcher;
+	private PlusClient mPlusClient;
 
-  public UploadsListFragment() {}
+	private static final String TAG = UploadsListFragment.class.getName();
 
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    mPlusClient = new PlusClient.Builder(getActivity(), this, this).build();
-  }
+	public UploadsListFragment() {
+	}
 
-  @Override
-  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.list_fragment, container, false);
-  }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		mPlusClient = new PlusClient.Builder(getActivity(), this, this).build();
+	}
 
-  @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-    setProfileInfo(null);
-  }
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+		return inflater.inflate(R.layout.list_fragment, container, false);
+	}
 
-  public void setVideos(List<VideoData> videos) {
-    if (!isAdded()) {
-      return;
-    }
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		setProfileInfo(null);
+	}
 
-    setListAdapter(new UploadedVideoAdapter(videos));
-  }
+	public void setVideos(List<VideoData> videos) {
+		if (!isAdded()) {
+			return;
+		}
 
-  public void setProfileInfo(Person person) {
-    if (person == null) {
-      ((ImageView) getView().findViewById(R.id.avatar)).setImageDrawable(null);
-      ((TextView) getView().findViewById(R.id.display_name)).setText("Not signed in");
-    } else {
-      mImageFetcher.loadImage(person.getImage().getUrl(),
-          ((ImageView) getView().findViewById(R.id.avatar)));
-      ((TextView) getView().findViewById(R.id.display_name)).setText(person.getDisplayName());
-    }
-  }
+		setListAdapter(new UploadedVideoAdapter(videos));
+	}
 
-  @Override
-  public void onStart() {
-    super.onStart();
-    mPlusClient.connect();
-  }
+	public void setProfileInfo(Person person) {
+		if (person == null) {
+			((ImageView) getView().findViewById(R.id.avatar))
+					.setImageDrawable(null);
+			((TextView) getView().findViewById(R.id.display_name))
+					.setText("Not signed in");
+		} else {
+			mImageFetcher.loadImage(person.getImage().getUrl(),
+					((ImageView) getView().findViewById(R.id.avatar)));
+			((TextView) getView().findViewById(R.id.display_name))
+					.setText(person.getDisplayName());
+		}
+	}
 
-  @Override
-  public void onStop() {
-    super.onStop();
-    mPlusClient.disconnect();
-  }
+	@Override
+	public void onStart() {
+		super.onStart();
+		mPlusClient.connect();
+	}
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    if (mPlusClient.isConnected() && getListAdapter() != null) {
-      ((UploadedVideoAdapter) getListAdapter()).notifyDataSetChanged();
-    }
-  }
+	@Override
+	public void onStop() {
+		super.onStop();
+		mPlusClient.disconnect();
+	}
 
-  @Override
-  public void onConnected() {
-    if (getListAdapter() != null) {
-      ((UploadedVideoAdapter) getListAdapter()).notifyDataSetChanged();
-    }
-  }
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (mPlusClient.isConnected() && getListAdapter() != null) {
+			((UploadedVideoAdapter) getListAdapter()).notifyDataSetChanged();
+		}
+	}
 
-  @Override
-  public void onDisconnected() {}
+	@Override
+	public void onConnected() {
+		if (getListAdapter() != null) {
+			((UploadedVideoAdapter) getListAdapter()).notifyDataSetChanged();
+		}
+	}
 
-  @Override
-  public void onConnectionFailed(ConnectionResult connectionResult) {
-    if (connectionResult.hasResolution()) {
-      Toast.makeText(getActivity(), "Connection to Play Services failed.", Toast.LENGTH_SHORT)
-          .show();
-      // can't really call startResolutionForResult from a fragment
-      // try {
-      // connectionResult.startResolutionForResult(getActivity(),
-      // REQUEST_PLUS_RESOLVE_CONNECTION);
-      // } catch (IntentSender.SendIntentException e) {
-      // e.printStackTrace();
-      // }
-    }
-  }
+	@Override
+	public void onDisconnected() {
+	}
 
-  private class UploadedVideoAdapter extends BaseAdapter {
-    private List<VideoData> mVideos;
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+		if (connectionResult.hasResolution()) {
+			Toast.makeText(getActivity(),
+					"Connection to Play Services failed.", Toast.LENGTH_SHORT)
+					.show();
 
-    private UploadedVideoAdapter(List<VideoData> videos) {
-      mVideos = videos;
-    }
+			Log.e(TAG,
+					String.format(
+							"Connection to Play Services Failed, error: %d, reason: %s",
+							connectionResult.getErrorCode(),
+							connectionResult.toString()));
+			try {
+				connectionResult.startResolutionForResult(getActivity(),0);
+			}
+			catch (IntentSender.SendIntentException e) {
+				Log.e(TAG,e.toString(),e);
+			}
+		}
+	}
 
-    @Override
-    public int getCount() {
-      return mVideos.size();
-    }
+	private class UploadedVideoAdapter extends BaseAdapter {
+		private List<VideoData> mVideos;
 
-    @Override
-    public Object getItem(int i) {
-      return mVideos.get(i);
-    }
+		private UploadedVideoAdapter(List<VideoData> videos) {
+			mVideos = videos;
+		}
 
-    @Override
-    public long getItemId(int i) {
-      return mVideos.get(i).getYouTubeId().hashCode();
-    }
+		@Override
+		public int getCount() {
+			return mVideos.size();
+		}
 
-    @Override
-    public View getView(final int position, View convertView, ViewGroup container) {
-      if (convertView == null) {
-        convertView =
-            LayoutInflater.from(getActivity()).inflate(R.layout.list_item, container, false);
-      }
+		@Override
+		public Object getItem(int i) {
+			return mVideos.get(i);
+		}
 
-      VideoData video = mVideos.get(position);
-      ((TextView) convertView.findViewById(android.R.id.text1)).setText(video.getTitle());
-      mImageFetcher.loadImage(video.getThumbUri(),
-          (ImageView) convertView.findViewById(R.id.thumbnail));
-      if (mPlusClient.isConnected()) {
-        ((PlusOneButton) convertView.findViewById(R.id.plus_button)).initialize(mPlusClient,
-            video.getWatchUri(), null);
-      }
-      convertView.findViewById(R.id.main_target).setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-          mCallbacks.onVideoSelected(mVideos.get(position));
-        }
-      });
-      return convertView;
-    }
-  }
+		@Override
+		public long getItemId(int i) {
+			return mVideos.get(i).getYouTubeId().hashCode();
+		}
 
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    if (!(activity instanceof Callbacks)) {
-      throw new ClassCastException("Activity must implement callbacks.");
-    }
+		@Override
+		public View getView(final int position, View convertView,
+				ViewGroup container) {
+			if (convertView == null) {
+				convertView = LayoutInflater.from(getActivity()).inflate(
+						R.layout.list_item, container, false);
+			}
 
-    mCallbacks = (Callbacks) activity;
-    mImageFetcher = mCallbacks.onGetImageFetcher();
-  }
+			VideoData video = mVideos.get(position);
+			((TextView) convertView.findViewById(android.R.id.text1))
+					.setText(video.getTitle());
+			mImageFetcher.loadImage(video.getThumbUri(),
+					(ImageView) convertView.findViewById(R.id.thumbnail));
+			if (mPlusClient.isConnected()) {
+				((PlusOneButton) convertView.findViewById(R.id.plus_button))
+						.initialize(mPlusClient, video.getWatchUri(), null);
+			}
+			convertView.findViewById(R.id.main_target).setOnClickListener(
+					new View.OnClickListener() {
+						@Override
+						public void onClick(View view) {
+							mCallbacks.onVideoSelected(mVideos.get(position));
+						}
+					});
+			return convertView;
+		}
+	}
 
-  @Override
-  public void onDetach() {
-    super.onDetach();
-    mCallbacks = null;
-    mImageFetcher = null;
-  }
+	@Override
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+		if (!(activity instanceof Callbacks)) {
+			throw new ClassCastException("Activity must implement callbacks.");
+		}
 
-  public interface Callbacks {
-    public ImageFetcher onGetImageFetcher();
+		mCallbacks = (Callbacks) activity;
+		mImageFetcher = mCallbacks.onGetImageFetcher();
+	}
 
-    public void onVideoSelected(VideoData video);
-  }
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		mCallbacks = null;
+		mImageFetcher = null;
+	}
+
+	public interface Callbacks {
+		public ImageFetcher onGetImageFetcher();
+
+		public void onVideoSelected(VideoData video);
+	}
 }
