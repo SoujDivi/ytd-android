@@ -122,7 +122,7 @@ public class DirectFragment extends Fragment implements
 
         YouTube youtube =
             new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName(
-                "GooglePlayServicesDemo/1.0").build();
+                "ytd-android").build();
         try {
           youtube.videos().update("snippet", video.getVideo()).execute();
         } catch (IOException e) {
