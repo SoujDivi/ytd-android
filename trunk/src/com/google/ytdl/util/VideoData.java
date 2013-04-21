@@ -55,7 +55,7 @@ public class VideoData {
   }
 
   public String getThumbUri() {
-    return "http://img.youtube.com/vi/" + getYouTubeId() + "/0.jpg";
+    return mVideo.getSnippet().getThumbnails().getDefault().getUrl();
   }
 
   public String getWatchUri() {
