@@ -82,13 +82,13 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
   private String mChosenAccountName;
   private String mToken;
-  private Uri fileURI = null;
+  private Uri mFileURI = null;
   private Handler mHandler = new Handler();
 
   private VideoData mVideoData;
 
   private int mCurrentBackoff = 0;
-  private Button btn;
+  private Button mButton;
 
   private UploadsListFragment mUploadsListFragment;
   private DirectFragment mDirectFragment;
@@ -100,8 +100,8 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     setContentView(R.layout.activity_main);
 
     ensureFetcher();
-    btn = (Button) findViewById(R.id.upload_button);
-    btn.setEnabled(false);
+    mButton = (Button) findViewById(R.id.upload_button);
+    mButton.setEnabled(false);
 
     int errorCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
     if (errorCode != ConnectionResult.SUCCESS) {
@@ -243,14 +243,14 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
       case RESULT_PICK_IMAGE_CROP:
         if (resultCode == RESULT_OK) {
-          fileURI = data.getData();
+          mFileURI = data.getData();
           mVideoData = null; // TODO
         }
         break;
 
       case RESULT_VIDEO_CAP:
         if (resultCode == RESULT_OK) {
-          fileURI = data.getData();
+        	mFileURI = data.getData();
           mVideoData = null; // TODO
         }
         break;
@@ -478,7 +478,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
   @Override
   public void onVideoSelected(VideoData video) {
     mVideoData = video;
-    btn.setEnabled(true);
+    mButton.setEnabled(true);
     mDirectFragment.panToVideo(video);
   }
 
@@ -487,14 +487,14 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     // ACTION_GET_CONTENT
     intent.setType("video/*");
     startActivityForResult(intent, RESULT_PICK_IMAGE_CROP);
-    btn.setEnabled(true);
+    mButton.setEnabled(true);
   }
 
   public void recordVideo(View view) {
     Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE); // TODO
     // ACTION_GET_CONTENT
     startActivityForResult(intent, RESULT_VIDEO_CAP);
-    btn.setEnabled(true);
+    mButton.setEnabled(true);
   }
 
   public void uploadVideo(View view) {
@@ -504,17 +504,17 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     // if an upload video is selected.
     if (mVideoData != null) {
       mDirectFragment.directLite(mVideoData, mToken);
-      btn.setEnabled(false);
+      mButton.setEnabled(false);
       return;
     }
     // if a video is picked or recorded.
-    if (fileURI != null) {
+    if (mFileURI != null) {
       Intent uploadIntent = new Intent(this, UploadService.class);
-      uploadIntent.setData(fileURI);
+      uploadIntent.setData(mFileURI);
       uploadIntent.putExtra("account", mChosenAccountName);
       uploadIntent.putExtra("token", mToken);
       startService(uploadIntent);
-      btn.setEnabled(false);
+      mButton.setEnabled(false);
     }
   }
 

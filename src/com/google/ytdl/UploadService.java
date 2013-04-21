@@ -40,15 +40,15 @@ public class UploadService extends IntentService {
     super("YTUploadService");
   }
 
-  private Uri fileUri;
+  private Uri mFileUri;
   private String mToken;
-  private long fileSize;
+  private long mFileSize;
 
   @Override
   protected void onHandleIntent(Intent intent) {
-    fileUri = intent.getData();
+	mFileUri = intent.getData();
     mToken = intent.getStringExtra("token");
-    fileSize = intent.getLongExtra("length", 0);
+    mFileSize = intent.getLongExtra("length", 0);
     GoogleCredential credential = new GoogleCredential();
     credential.setAccessToken(mToken);
 
@@ -61,11 +61,11 @@ public class UploadService extends IntentService {
 
     InputStream fileInputStream = null;
     try {
-      fileSize = getContentResolver().openFileDescriptor(fileUri, "r").getStatSize();
-      fileInputStream = getContentResolver().openInputStream(fileUri);
+      mFileSize = getContentResolver().openFileDescriptor(mFileUri, "r").getStatSize();
+      fileInputStream = getContentResolver().openInputStream(mFileUri);
     } catch (FileNotFoundException e) {
       Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
     }
-    ResumableUpload.upload(youtube, fileInputStream, fileSize, getApplicationContext());
+    ResumableUpload.upload(youtube, fileInputStream, mFileSize, getApplicationContext());
   }
 }
