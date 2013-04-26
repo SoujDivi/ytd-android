@@ -14,6 +14,7 @@
 
 package com.google.ytdl;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.media.MediaHttpUploader;
 import com.google.api.client.googleapis.media.MediaHttpUploaderProgressListener;
@@ -26,7 +27,10 @@ import com.google.ytdl.util.Upload;
 
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -156,19 +160,18 @@ public class ResumableUpload {
 
       // Execute upload.
       Video returnedVideo = videoInsert.execute();
-
       videoId = returnedVideo.getId();
 
-    } catch (GoogleJsonResponseException e) {
-      System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
-          + e.getDetails().getMessage());
-      e.printStackTrace();
+    } catch (final GoogleJsonResponseException e) {
+      if (401 == e.getDetails().getCode()) {
+        e.printStackTrace();
+        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
+        manager.sendBroadcast(new Intent(MainActivity.INVALIDATE_TOKEN_INTENT));
+      }
     } catch (IOException e) {
-      System.err.println("IOException: " + e.getMessage());
-      e.printStackTrace();
+      Log.e("IOException",e.getMessage());
     } catch (Throwable t) {
-      System.err.println("Throwable: " + t.getMessage());
-      t.printStackTrace();
+      Log.e("Throwable",t.getMessage());
     }
     return videoId;
   }
