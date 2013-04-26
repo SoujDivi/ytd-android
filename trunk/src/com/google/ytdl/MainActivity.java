@@ -43,7 +43,10 @@ import com.google.ytdl.util.VideoData;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -51,7 +54,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -77,8 +82,11 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
   private static final int REQUEST_AUTHENTICATE = 3;
   private static final int RESULT_PICK_IMAGE_CROP = 4;
   private static final int RESULT_VIDEO_CAP = 5;
+  static final String INVALIDATE_TOKEN_INTENT = "com.google.ytdl.invalidate";
 
   private ImageFetcher mImageFetcher;
+
+  private InvalidateTokenReceiver invalidateTokenReceiver;
 
   private String mChosenAccountName;
   private String mToken;
@@ -136,6 +144,14 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     mDirectFragment = (DirectFragment) getFragmentManager().findFragmentById(R.id.direct_fragment);
   }
 
+  @Override
+  public void onResume() {
+    super.onResume();
+    if (invalidateTokenReceiver == null) invalidateTokenReceiver = new InvalidateTokenReceiver();
+    IntentFilter intentFilter = new IntentFilter(INVALIDATE_TOKEN_INTENT);
+    LocalBroadcastManager.getInstance(this).registerReceiver(invalidateTokenReceiver, intentFilter);
+  }
+
   private void ensureFetcher() {
     if (mImageFetcher == null) {
       mImageFetcher = new ImageFetcher(this, 512, 512);
@@ -168,6 +184,9 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
   @Override
   protected void onPause() {
     super.onPause();
+    if (invalidateTokenReceiver != null) {
+      LocalBroadcastManager.getInstance(this).unregisterReceiver(invalidateTokenReceiver);
+    }
     if (isFinishing()) {
       mHandler.removeCallbacksAndMessages(null);
     }
@@ -250,7 +269,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
       case RESULT_VIDEO_CAP:
         if (resultCode == RESULT_OK) {
-        	mFileURI = data.getData();
+          mFileURI = data.getData();
           mVideoData = null; // TODO
         }
         break;
@@ -518,4 +537,24 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     }
   }
 
+  private class InvalidateTokenReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      if (intent.getAction().equals(INVALIDATE_TOKEN_INTENT)) {
+        Log.d(InvalidateTokenReceiver.class.getName(),"Invalidating token");
+        GoogleAuthUtil.invalidateToken(MainActivity.this, mToken);
+        mHandler.postDelayed(new Runnable() {
+          @Override
+          public void run() {
+            tryAuthenticate();
+          }
+        }, mCurrentBackoff * 1000);
+
+        mCurrentBackoff *= 2;
+        if (mCurrentBackoff == 0) {
+          mCurrentBackoff = 1;
+        }
+      }
+    }
+  }
 }

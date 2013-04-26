@@ -82,12 +82,6 @@ public class DirectFragment extends Fragment implements
   }
 
   @Override
-  public void onResume() {
-    super.onResume();
-  }
-
-
-  @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     if (!(activity instanceof Callbacks)) {
@@ -104,6 +98,9 @@ public class DirectFragment extends Fragment implements
     public ImageFetcher onGetImageFetcher();
 
     public void onVideoSelected(VideoData video);
+
+    public void onResume();
+
   }
 
   public void directLite(final VideoData video, final String token) {
