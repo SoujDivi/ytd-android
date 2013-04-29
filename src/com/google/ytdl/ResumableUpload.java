@@ -151,7 +151,7 @@ public class ResumableUpload {
                   .setProgress(0, 0, false);
               mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
             case NOT_STARTED:
-              System.out.println("Upload Not Started!");
+              Log.d(this.getClass().getSimpleName(),"Upload Not Started!");
               break;
           }
         }
@@ -164,7 +164,7 @@ public class ResumableUpload {
 
     } catch (final GoogleJsonResponseException e) {
       if (401 == e.getDetails().getCode()) {
-        e.printStackTrace();
+        Log.e(ResumableUpload.class.getSimpleName(), e.getMessage());
         LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
         manager.sendBroadcast(new Intent(MainActivity.INVALIDATE_TOKEN_INTENT));
       }

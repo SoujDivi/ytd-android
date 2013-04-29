@@ -66,7 +66,7 @@ public class UploadService extends IntentService {
       mFileSize = getContentResolver().openFileDescriptor(mFileUri, "r").getStatSize();
       fileInputStream = getContentResolver().openInputStream(mFileUri);
     } catch (FileNotFoundException e) {
-      Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+      Log.e(getApplicationContext().toString(), e.getMessage());
     }
     ResumableUpload.upload(youtube, fileInputStream, mFileSize, getApplicationContext());
   }
