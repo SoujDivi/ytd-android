@@ -313,9 +313,9 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
           return false;
         } catch (IOException transientEx) {
           // TODO: backoff
-          transientEx.printStackTrace();
+          Log.e(this.getClass().getSimpleName(), transientEx.getMessage());
         } catch (GoogleAuthException authEx) {
-          authEx.printStackTrace();
+          Log.e(this.getClass().getSimpleName(), authEx.getMessage());
         }
         return true;
       }
@@ -361,7 +361,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
         } catch (final GoogleJsonResponseException e) {
           if (401 == e.getDetails().getCode()) {
-            e.printStackTrace();
+            Log.e(this.getClass().getSimpleName(), e.getMessage());
             GoogleAuthUtil.invalidateToken(MainActivity.this, mToken);
             mHandler.postDelayed(new Runnable() {
               @Override
@@ -377,7 +377,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
           }
 
         } catch (final IOException e) {
-          e.printStackTrace();
+          Log.e(this.getClass().getSimpleName(), e.getMessage());
         }
         return null;
       }
@@ -446,7 +446,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
         } catch (final GoogleJsonResponseException e) {
           if (401 == e.getDetails().getCode()) {
-            e.printStackTrace();
+            Log.e(this.getClass().getSimpleName(), e.getMessage());
             GoogleAuthUtil.invalidateToken(MainActivity.this, mToken);
             mHandler.postDelayed(new Runnable() {
               @Override
@@ -462,7 +462,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
           }
 
         } catch (final IOException e) {
-          e.printStackTrace();
+          Log.e(this.getClass().getSimpleName(), e.getMessage());
         }
         return null;
       }

@@ -34,6 +34,7 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -123,7 +124,7 @@ public class DirectFragment extends Fragment implements
         try {
           youtube.videos().update("snippet", video.getVideo()).execute();
         } catch (IOException e) {
-          showErrorToast(e.getMessage());
+          Log.e(this.getClass().toString(),e.getMessage());
         }
         return null;
       }
