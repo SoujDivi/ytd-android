@@ -161,10 +161,10 @@ public class ImageFetcher extends ImageResizer {
     }
 
     /**
-    * Simple network connection check.
-    *
-    * @param context
-    */
+     * Simple network connection check.
+     *
+     * @param context
+     */
     private void checkConnection(Context context) {
         final ConnectivityManager cm =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -196,7 +196,8 @@ public class ImageFetcher extends ImageResizer {
             while (mHttpDiskCacheStarting) {
                 try {
                     mHttpDiskCacheLock.wait();
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
             }
 
             if (mHttpDiskCache != null) {
@@ -230,7 +231,8 @@ public class ImageFetcher extends ImageResizer {
                     if (fileDescriptor == null && fileInputStream != null) {
                         try {
                             fileInputStream.close();
-                        } catch (IOException e) {}
+                        } catch (IOException e) {
+                        }
                     }
                 }
             }
@@ -244,7 +246,8 @@ public class ImageFetcher extends ImageResizer {
         if (fileInputStream != null) {
             try {
                 fileInputStream.close();
-            } catch (IOException e) {}
+            } catch (IOException e) {
+            }
         }
         return bitmap;
     }
@@ -290,7 +293,8 @@ public class ImageFetcher extends ImageResizer {
                 if (in != null) {
                     in.close();
                 }
-            } catch (final IOException e) {}
+            } catch (final IOException e) {
+            }
         }
         return false;
     }

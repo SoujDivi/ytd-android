@@ -86,7 +86,7 @@ public class ImageCache {
     /**
      * Creating a new ImageCache object using the default parameters.
      *
-     * @param context The context to use
+     * @param context    The context to use
      * @param uniqueName A unique name that will be appended to the cache directory
      */
     public ImageCache(Context context, String uniqueName) {
@@ -98,7 +98,7 @@ public class ImageCache {
      * one is created using the supplied params and saved to a {@link RetainFragment}.
      *
      * @param fragmentManager The fragment manager to use when dealing with the retained fragment.
-     * @param cacheParams The cache parameters to use if creating the ImageCache
+     * @param cacheParams     The cache parameters to use if creating the ImageCache
      * @return An existing retained ImageCache object or a new one if one did not exist
      */
     public static ImageCache findOrCreateCache(
@@ -145,7 +145,7 @@ public class ImageCache {
                  */
                 @Override
                 protected void entryRemoved(boolean evicted, String key,
-                        BitmapDrawable oldValue, BitmapDrawable newValue) {
+                                            BitmapDrawable oldValue, BitmapDrawable newValue) {
                     if (RecyclingBitmapDrawable.class.isInstance(oldValue)) {
                         // The removed entry is a recycling drawable, so notify it 
                         // that it has been removed from the memory cache
@@ -217,7 +217,8 @@ public class ImageCache {
 
     /**
      * Adds a bitmap to both memory and disk cache.
-     * @param data Unique identifier for the bitmap to store
+     *
+     * @param data  Unique identifier for the bitmap to store
      * @param value The bitmap drawable to store
      */
     public void addBitmapToCache(String data, BitmapDrawable value) {
@@ -263,7 +264,8 @@ public class ImageCache {
                         if (out != null) {
                             out.close();
                         }
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                    }
                 }
             }
         }
@@ -303,7 +305,8 @@ public class ImageCache {
             while (mDiskCacheStarting) {
                 try {
                     mDiskCacheLock.wait();
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                }
             }
             if (mDiskLruCache != null) {
                 InputStream inputStream = null;
@@ -330,7 +333,8 @@ public class ImageCache {
                         if (inputStream != null) {
                             inputStream.close();
                         }
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                    }
                 }
             }
             return bitmap;
@@ -468,7 +472,7 @@ public class ImageCache {
          * memory. Throws {@link IllegalArgumentException} if percent is < 0.05 or > .8.
          * memCacheSize is stored in kilobytes instead of bytes as this will eventually be passed
          * to construct a LruCache which takes an int in its constructor.
-         *
+         * <p/>
          * This value should be chosen carefully based on a number of factors
          * Refer to the corresponding Android Training class for more discussion:
          * http://developer.android.com/training/displaying-bitmaps/
@@ -485,10 +489,10 @@ public class ImageCache {
     }
 
     /**
-     * @param candidate - Bitmap to check
+     * @param candidate     - Bitmap to check
      * @param targetOptions - Options that have the out* value populated
      * @return true if <code>candidate</code> can be used for inBitmap re-use with
-     *      <code>targetOptions</code>
+     *         <code>targetOptions</code>
      */
     private static boolean canUseForInBitmap(
             Bitmap candidate, BitmapFactory.Options targetOptions) {
@@ -501,7 +505,7 @@ public class ImageCache {
     /**
      * Get a usable cache directory (external if available, internal otherwise).
      *
-     * @param context The context to use
+     * @param context    The context to use
      * @param uniqueName A unique directory name to append to the cache dir
      * @return The cache dir
      */
@@ -511,7 +515,7 @@ public class ImageCache {
         final String cachePath =
                 Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
                         !isExternalStorageRemovable() ? getExternalCacheDir(context).getPath() :
-                                context.getCacheDir().getPath();
+                        context.getCacheDir().getPath();
 
         return new File(cachePath + File.separator + uniqueName);
     }
@@ -547,6 +551,7 @@ public class ImageCache {
 
     /**
      * Get the size in bytes of a bitmap in a BitmapDrawable.
+     *
      * @param value
      * @return size in bytes
      */
@@ -638,7 +643,8 @@ public class ImageCache {
         /**
          * Empty constructor as per the Fragment documentation
          */
-        public RetainFragment() {}
+        public RetainFragment() {
+        }
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
