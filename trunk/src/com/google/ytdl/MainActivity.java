@@ -83,6 +83,8 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     private static final int RESULT_PICK_IMAGE_CROP = 4;
     private static final int RESULT_VIDEO_CAP = 5;
     static final String INVALIDATE_TOKEN_INTENT = "com.google.ytdl.invalidate";
+    public static final String ACCOUNT_KEY = "account";
+    public static final String TOKEN_KEY = "token";
 
     private ImageFetcher mImageFetcher;
 
@@ -126,8 +128,8 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
         }
 
         if (savedInstanceState != null) {
-            mToken = savedInstanceState.getString("token");
-            mChosenAccountName = savedInstanceState.getString("account");
+            mToken = savedInstanceState.getString(TOKEN_KEY);
+            mChosenAccountName = savedInstanceState.getString(ACCOUNT_KEY);
         } else {
             loadAccount();
         }
@@ -162,14 +164,14 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
     private void loadAccount() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        mChosenAccountName = sp.getString("account", null);
-        mToken = sp.getString("token", null);
+        mChosenAccountName = sp.getString(ACCOUNT_KEY, null);
+        mToken = sp.getString(TOKEN_KEY, null);
         invalidateOptionsMenu();
     }
 
     private void saveAccount() {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        sp.edit().putString("account", mChosenAccountName).putString("token", mToken).commit();
+        sp.edit().putString(ACCOUNT_KEY, mChosenAccountName).putString(TOKEN_KEY, mToken).commit();
     }
 
     private void loadData() {
@@ -280,8 +282,8 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("account", mChosenAccountName);
-        outState.putString("token", mToken);
+        outState.putString(ACCOUNT_KEY, mChosenAccountName);
+        outState.putString(TOKEN_KEY, mToken);
     }
 
     private void tryAuthenticate() {
@@ -530,8 +532,8 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
         if (mFileURI != null) {
             Intent uploadIntent = new Intent(this, UploadService.class);
             uploadIntent.setData(mFileURI);
-            uploadIntent.putExtra("account", mChosenAccountName);
-            uploadIntent.putExtra("token", mToken);
+            uploadIntent.putExtra(ACCOUNT_KEY, mChosenAccountName);
+            uploadIntent.putExtra(TOKEN_KEY, mToken);
             startService(uploadIntent);
             mButton.setEnabled(false);
         }
