@@ -117,7 +117,7 @@ public class UploadsListFragment extends ListFragment implements
     }
 
     @Override
-    public void onConnected() {
+    public void onConnected(Bundle bundle) {
         if (getListAdapter() != null) {
             ((UploadedVideoAdapter) getListAdapter()).notifyDataSetChanged();
         }
