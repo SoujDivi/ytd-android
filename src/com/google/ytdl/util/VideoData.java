@@ -22,43 +22,43 @@ import java.util.List;
 
 /**
  * @author Ibrahim Ulukaya <ulukaya@google.com>
- * 
+ *         <p/>
  *         Helper class to handle YouTube videos.
  */
 public class VideoData {
-  private Video mVideo;
+    private Video mVideo;
 
-  public void setVideo(Video video) {
-    mVideo = video;
-  }
-
-  public Video getVideo() {
-    return mVideo;
-  }
-
-  public String getYouTubeId() {
-    return mVideo.getId();
-  }
-
-  public String getTitle() {
-    return mVideo.getSnippet().getTitle();
-  }
-
-  public VideoSnippet addTag(String tag) {
-    VideoSnippet mSnippet = mVideo.getSnippet();
-    List<String> mTags = mSnippet.getTags();
-    if (mTags == null) {
-      mTags = new ArrayList<String>(2);
+    public void setVideo(Video video) {
+        mVideo = video;
     }
-    mTags.add(tag);
-    return mSnippet;
-  }
 
-  public String getThumbUri() {
-    return mVideo.getSnippet().getThumbnails().getDefault().getUrl();
-  }
+    public Video getVideo() {
+        return mVideo;
+    }
 
-  public String getWatchUri() {
-    return "http://www.youtube.com/watch?v=" + getYouTubeId();
-  }
+    public String getYouTubeId() {
+        return mVideo.getId();
+    }
+
+    public String getTitle() {
+        return mVideo.getSnippet().getTitle();
+    }
+
+    public VideoSnippet addTag(String tag) {
+        VideoSnippet mSnippet = mVideo.getSnippet();
+        List<String> mTags = mSnippet.getTags();
+        if (mTags == null) {
+            mTags = new ArrayList<String>(2);
+        }
+        mTags.add(tag);
+        return mSnippet;
+    }
+
+    public String getThumbUri() {
+        return mVideo.getSnippet().getThumbnails().getDefault().getUrl();
+    }
+
+    public String getWatchUri() {
+        return "http://www.youtube.com/watch?v=" + getYouTubeId();
+    }
 }

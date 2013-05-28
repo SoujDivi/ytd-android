@@ -42,137 +42,137 @@ import java.util.List;
 
 /**
  * @author Ibrahim Ulukaya <ulukaya@google.com>
- * 
+ *         <p/>
  *         YouTube Resumable Upload controller class.
  */
 public class ResumableUpload {
-  private static int NOTIFICATION_ID = 1001;
-  /*
-   * Global instance of the format used for the video being uploaded (MIME type).
-   */
-  private static String VIDEO_FILE_FORMAT = "video/*";
+    private static int NOTIFICATION_ID = 1001;
+    /*
+     * Global instance of the format used for the video being uploaded (MIME type).
+     */
+    private static String VIDEO_FILE_FORMAT = "video/*";
 
-  /**
-   * Uploads user selected video in the project folder to the user's YouTube account using OAuth2
-   * for authentication.
-   * 
-   * @param args command line args (not used).
-   */
+    /**
+     * Uploads user selected video in the project folder to the user's YouTube account using OAuth2
+     * for authentication.
+     *
+     * @param args command line args (not used).
+     */
 
-  public static String upload(YouTube youtube, final InputStream fileInputStream,
-      final long fileSize, Context context) {
-    final NotificationManager mNotifyManager =
-        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-    final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
-    mBuilder.setContentTitle("YouTube Upload").setContentText("Direct Lite upload started")
-        .setSmallIcon(R.drawable.icon);
-    String videoId = null;
-    try {
-      // Add extra information to the video before uploading.
-      Video videoObjectDefiningMetadata = new Video();
+    public static String upload(YouTube youtube, final InputStream fileInputStream,
+                                final long fileSize, Context context) {
+        final NotificationManager mNotifyManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context);
+        mBuilder.setContentTitle("YouTube Upload").setContentText("Direct Lite upload started")
+                .setSmallIcon(R.drawable.icon);
+        String videoId = null;
+        try {
+            // Add extra information to the video before uploading.
+            Video videoObjectDefiningMetadata = new Video();
 
       /*
        * Set the video to public, so it is available to everyone (what most people want). This is
        * actually the default, but I wanted you to see what it looked like in case you need to set
        * it to "unlisted" or "private" via API.
        */
-      VideoStatus status = new VideoStatus();
-      status.setPrivacyStatus("public");
-      videoObjectDefiningMetadata.setStatus(status);
+            VideoStatus status = new VideoStatus();
+            status.setPrivacyStatus("public");
+            videoObjectDefiningMetadata.setStatus(status);
 
-      // We set a majority of the metadata with the VideoSnippet object.
-      VideoSnippet snippet = new VideoSnippet();
+            // We set a majority of the metadata with the VideoSnippet object.
+            VideoSnippet snippet = new VideoSnippet();
 
       /*
        * The Calendar instance is used to create a unique name and description for test purposes, so
        * you can see multiple files being uploaded. You will want to remove this from your project
        * and use your own standard names.
        */
-      Calendar cal = Calendar.getInstance();
-      snippet.setTitle("Test Upload via Java on " + cal.getTime());
-      snippet.setDescription("Video uploaded via YouTube Data API V3 using the Java library "
-          + "on " + cal.getTime());
+            Calendar cal = Calendar.getInstance();
+            snippet.setTitle("Test Upload via Java on " + cal.getTime());
+            snippet.setDescription("Video uploaded via YouTube Data API V3 using the Java library "
+                    + "on " + cal.getTime());
 
-      // Set your keywords.
-      List<String> tags = new ArrayList<String>();
-      tags.add("ytdl");
-      tags.add(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_PLAYLIST));
-      snippet.setTags(tags);
+            // Set your keywords.
+            List<String> tags = new ArrayList<String>();
+            tags.add("ytdl");
+            tags.add(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_PLAYLIST));
+            snippet.setTags(tags);
 
-      // Set completed snippet to the video object.
-      videoObjectDefiningMetadata.setSnippet(snippet);
+            // Set completed snippet to the video object.
+            videoObjectDefiningMetadata.setSnippet(snippet);
 
-      InputStreamContent mediaContent =
-          new InputStreamContent(VIDEO_FILE_FORMAT, new BufferedInputStream(fileInputStream));
-      mediaContent.setLength(fileSize);
+            InputStreamContent mediaContent =
+                    new InputStreamContent(VIDEO_FILE_FORMAT, new BufferedInputStream(fileInputStream));
+            mediaContent.setLength(fileSize);
 
       /*
        * The upload command includes: 1. Information we want returned after file is successfully
        * uploaded. 2. Metadata we want associated with the uploaded video. 3. Video file itself.
        */
-      YouTube.Videos.Insert videoInsert =
-          youtube.videos().insert("snippet,statistics,status", videoObjectDefiningMetadata,
-              mediaContent);
+            YouTube.Videos.Insert videoInsert =
+                    youtube.videos().insert("snippet,statistics,status", videoObjectDefiningMetadata,
+                            mediaContent);
 
-      // Set the upload type and add event listener.
-      MediaHttpUploader uploader = videoInsert.getMediaHttpUploader();
+            // Set the upload type and add event listener.
+            MediaHttpUploader uploader = videoInsert.getMediaHttpUploader();
 
       /*
        * Sets whether direct media upload is enabled or disabled. True = whole media content is
        * uploaded in a single request. False (default) = resumable media upload protocol to upload
        * in data chunks.
        */
-      uploader.setDirectUploadEnabled(false);
+            uploader.setDirectUploadEnabled(false);
 
-      MediaHttpUploaderProgressListener progressListener = new MediaHttpUploaderProgressListener() {
-        public void progressChanged(MediaHttpUploader uploader) throws IOException {
-          switch (uploader.getUploadState()) {
-            case INITIATION_STARTED:
-              mBuilder.setContentText("Initiation Started").setProgress((int) fileSize,
-                  (int) uploader.getNumBytesUploaded(), false);
-              mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
-              break;
-            case INITIATION_COMPLETE:
-              mBuilder.setContentText("Initiation Completed").setProgress((int) fileSize,
-                  (int) uploader.getNumBytesUploaded(), false);
-              mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
-              break;
-            case MEDIA_IN_PROGRESS:
-              mBuilder
-                  .setContentTitle("YouTube Upload " + (int) (uploader.getProgress() * 100) + "%")
-                  .setContentText("Direct Lite upload in progress")
-                  .setProgress((int) fileSize, (int) uploader.getNumBytesUploaded(), false);
-              mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
-              break;
-            case MEDIA_COMPLETE:
-              mBuilder.setContentTitle("YouTube Upload Completed")
-                  .setContentText("Upload complete")
-                  // Removes the progress bar
-                  .setProgress(0, 0, false);
-              mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
-            case NOT_STARTED:
-              Log.d(this.getClass().getSimpleName(),"Upload Not Started!");
-              break;
-          }
+            MediaHttpUploaderProgressListener progressListener = new MediaHttpUploaderProgressListener() {
+                public void progressChanged(MediaHttpUploader uploader) throws IOException {
+                    switch (uploader.getUploadState()) {
+                        case INITIATION_STARTED:
+                            mBuilder.setContentText("Initiation Started").setProgress((int) fileSize,
+                                    (int) uploader.getNumBytesUploaded(), false);
+                            mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
+                            break;
+                        case INITIATION_COMPLETE:
+                            mBuilder.setContentText("Initiation Completed").setProgress((int) fileSize,
+                                    (int) uploader.getNumBytesUploaded(), false);
+                            mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
+                            break;
+                        case MEDIA_IN_PROGRESS:
+                            mBuilder
+                                    .setContentTitle("YouTube Upload " + (int) (uploader.getProgress() * 100) + "%")
+                                    .setContentText("Direct Lite upload in progress")
+                                    .setProgress((int) fileSize, (int) uploader.getNumBytesUploaded(), false);
+                            mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
+                            break;
+                        case MEDIA_COMPLETE:
+                            mBuilder.setContentTitle("YouTube Upload Completed")
+                                    .setContentText("Upload complete")
+                                            // Removes the progress bar
+                                    .setProgress(0, 0, false);
+                            mNotifyManager.notify(NOTIFICATION_ID, mBuilder.build());
+                        case NOT_STARTED:
+                            Log.d(this.getClass().getSimpleName(), "Upload Not Started!");
+                            break;
+                    }
+                }
+            };
+            uploader.setProgressListener(progressListener);
+
+            // Execute upload.
+            Video returnedVideo = videoInsert.execute();
+            videoId = returnedVideo.getId();
+
+        } catch (final GoogleJsonResponseException e) {
+            if (401 == e.getDetails().getCode()) {
+                Log.e(ResumableUpload.class.getSimpleName(), e.getMessage());
+                LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
+                manager.sendBroadcast(new Intent(MainActivity.INVALIDATE_TOKEN_INTENT));
+            }
+        } catch (IOException e) {
+            Log.e("IOException", e.getMessage());
+        } catch (Throwable t) {
+            Log.e("Throwable", t.getMessage());
         }
-      };
-      uploader.setProgressListener(progressListener);
-
-      // Execute upload.
-      Video returnedVideo = videoInsert.execute();
-      videoId = returnedVideo.getId();
-
-    } catch (final GoogleJsonResponseException e) {
-      if (401 == e.getDetails().getCode()) {
-        Log.e(ResumableUpload.class.getSimpleName(), e.getMessage());
-        LocalBroadcastManager manager = LocalBroadcastManager.getInstance(context);
-        manager.sendBroadcast(new Intent(MainActivity.INVALIDATE_TOKEN_INTENT));
-      }
-    } catch (IOException e) {
-      Log.e("IOException",e.getMessage());
-    } catch (Throwable t) {
-      Log.e("Throwable",t.getMessage());
+        return videoId;
     }
-    return videoId;
-  }
 }

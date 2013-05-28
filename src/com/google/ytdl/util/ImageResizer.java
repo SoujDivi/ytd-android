@@ -103,16 +103,16 @@ public class ImageResizer extends ImageWorker {
     /**
      * Decode and sample down a bitmap from resources to the requested width and height.
      *
-     * @param res The resources object containing the image data
-     * @param resId The resource id of the image data
-     * @param reqWidth The requested width of the resulting bitmap
+     * @param res       The resources object containing the image data
+     * @param resId     The resource id of the image data
+     * @param reqWidth  The requested width of the resulting bitmap
      * @param reqHeight The requested height of the resulting bitmap
-     * @param cache The ImageCache used to find candidate bitmaps for use with inBitmap
+     * @param cache     The ImageCache used to find candidate bitmaps for use with inBitmap
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
      *         that are equal to or greater than the requested width and height
      */
     public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-            int reqWidth, int reqHeight, ImageCache cache) {
+                                                         int reqWidth, int reqHeight, ImageCache cache) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -135,15 +135,15 @@ public class ImageResizer extends ImageWorker {
     /**
      * Decode and sample down a bitmap from a file to the requested width and height.
      *
-     * @param filename The full path of the file to decode
-     * @param reqWidth The requested width of the resulting bitmap
+     * @param filename  The full path of the file to decode
+     * @param reqWidth  The requested width of the resulting bitmap
      * @param reqHeight The requested height of the resulting bitmap
-     * @param cache The ImageCache used to find candidate bitmaps for use with inBitmap
+     * @param cache     The ImageCache used to find candidate bitmaps for use with inBitmap
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
      *         that are equal to or greater than the requested width and height
      */
     public static Bitmap decodeSampledBitmapFromFile(String filename,
-            int reqWidth, int reqHeight, ImageCache cache) {
+                                                     int reqWidth, int reqHeight, ImageCache cache) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -167,9 +167,9 @@ public class ImageResizer extends ImageWorker {
      * Decode and sample down a bitmap from a file input stream to the requested width and height.
      *
      * @param fileDescriptor The file descriptor to read from
-     * @param reqWidth The requested width of the resulting bitmap
-     * @param reqHeight The requested height of the resulting bitmap
-     * @param cache The ImageCache used to find candidate bitmaps for use with inBitmap
+     * @param reqWidth       The requested width of the resulting bitmap
+     * @param reqHeight      The requested height of the resulting bitmap
+     * @param cache          The ImageCache used to find candidate bitmaps for use with inBitmap
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
      *         that are equal to or greater than the requested width and height
      */
@@ -222,14 +222,14 @@ public class ImageResizer extends ImageWorker {
      * ensure a power of 2 is returned for inSampleSize which can be faster when decoding but
      * results in a larger bitmap which isn't as useful for caching purposes.
      *
-     * @param options An options object with out* params already populated (run through a decode*
-     *            method with inJustDecodeBounds==true
-     * @param reqWidth The requested width of the resulting bitmap
+     * @param options   An options object with out* params already populated (run through a decode*
+     *                  method with inJustDecodeBounds==true
+     * @param reqWidth  The requested width of the resulting bitmap
      * @param reqHeight The requested height of the resulting bitmap
      * @return The value to be used for inSampleSize
      */
     public static int calculateInSampleSize(BitmapFactory.Options options,
-            int reqWidth, int reqHeight) {
+                                            int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;

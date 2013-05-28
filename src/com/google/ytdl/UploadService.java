@@ -33,41 +33,41 @@ import java.io.InputStream;
 
 /**
  * @author Ibrahim Ulukaya <ulukaya@google.com>
- * 
+ *         <p/>
  *         Intent service to handle uploads.
  */
 public class UploadService extends IntentService {
 
-  public UploadService() {
-    super("YTUploadService");
-  }
-
-  private Uri mFileUri;
-  private String mToken;
-  private long mFileSize;
-
-  @Override
-  protected void onHandleIntent(Intent intent) {
-	mFileUri = intent.getData();
-    mToken = intent.getStringExtra("token");
-    mFileSize = intent.getLongExtra("length", 0);
-    GoogleCredential credential = new GoogleCredential();
-    credential.setAccessToken(mToken);
-
-    HttpTransport httpTransport = new NetHttpTransport();
-    JsonFactory jsonFactory = new JacksonFactory();
-
-    YouTube youtube =
-        new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName(
-            "ytd-android").build();
-
-    InputStream fileInputStream = null;
-    try {
-      mFileSize = getContentResolver().openFileDescriptor(mFileUri, "r").getStatSize();
-      fileInputStream = getContentResolver().openInputStream(mFileUri);
-    } catch (FileNotFoundException e) {
-      Log.e(getApplicationContext().toString(), e.getMessage());
+    public UploadService() {
+        super("YTUploadService");
     }
-    ResumableUpload.upload(youtube, fileInputStream, mFileSize, getApplicationContext());
-  }
+
+    private Uri mFileUri;
+    private String mToken;
+    private long mFileSize;
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        mFileUri = intent.getData();
+        mToken = intent.getStringExtra("token");
+        mFileSize = intent.getLongExtra("length", 0);
+        GoogleCredential credential = new GoogleCredential();
+        credential.setAccessToken(mToken);
+
+        HttpTransport httpTransport = new NetHttpTransport();
+        JsonFactory jsonFactory = new JacksonFactory();
+
+        YouTube youtube =
+                new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName(
+                        "ytd-android").build();
+
+        InputStream fileInputStream = null;
+        try {
+            mFileSize = getContentResolver().openFileDescriptor(mFileUri, "r").getStatSize();
+            fileInputStream = getContentResolver().openInputStream(mFileUri);
+        } catch (FileNotFoundException e) {
+            Log.e(getApplicationContext().toString(), e.getMessage());
+        }
+        ResumableUpload.upload(youtube, fileInputStream, mFileSize, getApplicationContext());
+    }
 }

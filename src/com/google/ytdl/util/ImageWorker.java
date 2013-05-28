@@ -67,7 +67,7 @@ public abstract class ImageWorker {
      * is set immediately, otherwise an {@link AsyncTask} will be created to asynchronously load the
      * bitmap.
      *
-     * @param data The URL of the image to download.
+     * @param data      The URL of the image to download.
      * @param imageView The ImageView to bind the downloaded image to.
      */
     public void loadImage(Object data, ImageView imageView) {
@@ -118,11 +118,12 @@ public abstract class ImageWorker {
     /**
      * Adds an {@link ImageCache} to this worker in the background (to prevent disk access on UI
      * thread).
+     *
      * @param fragmentManager
      * @param cacheParams
      */
     public void addImageCache(FragmentManager fragmentManager,
-            ImageCache.ImageCacheParams cacheParams) {
+                              ImageCache.ImageCacheParams cacheParams) {
         mImageCacheParams = cacheParams;
         setImageCache(ImageCache.findOrCreateCache(fragmentManager, mImageCacheParams));
         new CacheAsyncTask().execute(MESSAGE_INIT_DISK_CACHE);
@@ -158,7 +159,7 @@ public abstract class ImageWorker {
      * example, you could resize a large bitmap here, or pull down an image from the network.
      *
      * @param data The data to identify which image to process, as provided by
-     *            {@link ImageWorker#loadImage(Object, ImageView)}
+     *             {@link ImageWorker#loadImage(Object, ImageView)}
      * @return The processed bitmap
      */
     protected abstract Bitmap processBitmap(Object data);
@@ -172,6 +173,7 @@ public abstract class ImageWorker {
 
     /**
      * Cancels any pending work attached to the provided ImageView.
+     *
      * @param imageView
      */
     public static void cancelWork(ImageView imageView) {
@@ -212,7 +214,7 @@ public abstract class ImageWorker {
     /**
      * @param imageView Any imageView
      * @return Retrieve the currently active work task (if any) associated with this imageView.
-     * null if there is no such task.
+     *         null if there is no such task.
      */
     private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
         if (imageView != null) {
@@ -255,7 +257,8 @@ public abstract class ImageWorker {
                 while (mPauseWork && !isCancelled()) {
                     try {
                         mPauseWorkLock.wait();
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) {
+                    }
                 }
             }
 
@@ -358,7 +361,7 @@ public abstract class ImageWorker {
         public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask bitmapWorkerTask) {
             super(res, bitmap);
             bitmapWorkerTaskReference =
-                new WeakReference<BitmapWorkerTask>(bitmapWorkerTask);
+                    new WeakReference<BitmapWorkerTask>(bitmapWorkerTask);
         }
 
         public BitmapWorkerTask getBitmapWorkerTask() {
@@ -367,7 +370,7 @@ public abstract class ImageWorker {
     }
 
     /**
-     * Called when the processing is complete and the final drawable should be 
+     * Called when the processing is complete and the final drawable should be
      * set on the ImageView.
      *
      * @param imageView
@@ -377,7 +380,7 @@ public abstract class ImageWorker {
         if (mFadeInBitmap) {
             // Transition drawable with a transparent drawable and the final drawable
             final TransitionDrawable td =
-                    new TransitionDrawable(new Drawable[] {
+                    new TransitionDrawable(new Drawable[]{
                             new ColorDrawable(android.R.color.transparent),
                             drawable
                     });
@@ -398,7 +401,7 @@ public abstract class ImageWorker {
      * be paused when a ListView or GridView is being scrolled using a
      * {@link android.widget.AbsListView.OnScrollListener} to keep
      * scrolling smooth.
-     * <p>
+     * <p/>
      * If work is paused, be sure setPauseWork(false) is called again
      * before your fragment or activity is destroyed (for example during
      * {@link android.app.Activity#onPause()}), or there is a risk the
@@ -417,7 +420,7 @@ public abstract class ImageWorker {
 
         @Override
         protected Void doInBackground(Object... params) {
-            switch ((Integer)params[0]) {
+            switch ((Integer) params[0]) {
                 case MESSAGE_CLEAR:
                     clearCacheInternal();
                     break;

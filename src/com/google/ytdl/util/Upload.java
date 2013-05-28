@@ -17,17 +17,17 @@ package com.google.ytdl.util;
 import com.google.ytdl.Constants;
 
 public class Upload {
-  public static String generateKeywordFromPlaylistId(String playlistId) {
-    if (playlistId == null) playlistId = "";
-    if (playlistId.indexOf("PL") == 0) {
-      playlistId = playlistId.substring(2);
-    }
+    public static String generateKeywordFromPlaylistId(String playlistId) {
+        if (playlistId == null) playlistId = "";
+        if (playlistId.indexOf("PL") == 0) {
+            playlistId = playlistId.substring(2);
+        }
 
-    String keyword = Constants.DEFAULT_KEYWORD.concat(playlistId);
-    if (keyword.length() > Constants.MAX_KEYWORD_LENGTH) {
-      keyword = keyword.substring(0, Constants.MAX_KEYWORD_LENGTH);
+        String keyword = Constants.DEFAULT_KEYWORD.concat(playlistId);
+        if (keyword.length() > Constants.MAX_KEYWORD_LENGTH) {
+            keyword = keyword.substring(0, Constants.MAX_KEYWORD_LENGTH);
+        }
+        return keyword;
     }
-    return keyword;
-  }
 
 }
