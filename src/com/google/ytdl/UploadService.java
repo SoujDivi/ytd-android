@@ -57,7 +57,7 @@ public class UploadService extends IntentService {
 
         YouTube youtube =
                 new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName(
-                        "ytd-android").build();
+                        Constants.APP_NAME).build();
 
         InputStream fileInputStream = null;
         try {
