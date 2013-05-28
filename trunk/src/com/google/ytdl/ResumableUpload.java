@@ -14,7 +14,6 @@
 
 package com.google.ytdl;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.media.MediaHttpUploader;
 import com.google.api.client.googleapis.media.MediaHttpUploaderProgressListener;
