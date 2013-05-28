@@ -94,7 +94,7 @@ public class ResumableUpload {
 
             // Set your keywords.
             List<String> tags = new ArrayList<String>();
-            tags.add("ytdl");
+            tags.add(Constants.DEFAULT_KEYWORD);
             tags.add(Upload.generateKeywordFromPlaylistId(Constants.UPLOAD_PLAYLIST));
             snippet.setTags(tags);
 
