@@ -85,6 +85,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
     static final String INVALIDATE_TOKEN_INTENT = "com.google.ytdl.invalidate";
     public static final String ACCOUNT_KEY = "account";
     public static final String TOKEN_KEY = "token";
+    public static final String YOUTUBE_WATCH_URL_PREFIX = "http://www.youtube.com/watch?v=";
 
     private ImageFetcher mImageFetcher;
 
@@ -122,7 +123,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
                     errorDialog.show();
                 }
             } else {
-                Toast.makeText(this, "Google Play Services unavailable.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.google_play_not_available , Toast.LENGTH_SHORT).show();
                 finish();
             }
         }
@@ -224,7 +225,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
         } else if (id == R.id.action_youtube) {
             if (mVideoData != null) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse("http://www.youtube.com/watch?v=" + mVideoData.getYouTubeId()));
+                intent.setData(Uri.parse(YOUTUBE_WATCH_URL_PREFIX + mVideoData.getYouTubeId()));
                 startActivity(intent);
             }
             return true;
