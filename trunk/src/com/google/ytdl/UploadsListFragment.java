@@ -87,7 +87,7 @@ public class UploadsListFragment extends ListFragment implements
             ((ImageView) getView().findViewById(R.id.avatar))
                     .setImageDrawable(null);
             ((TextView) getView().findViewById(R.id.display_name))
-                    .setText("Not signed in");
+                    .setText(R.string.not_signed_in);
         } else {
             mImageFetcher.loadImage(person.getImage().getUrl(),
                     ((ImageView) getView().findViewById(R.id.avatar)));
@@ -131,7 +131,7 @@ public class UploadsListFragment extends ListFragment implements
     public void onConnectionFailed(ConnectionResult connectionResult) {
         if (connectionResult.hasResolution()) {
             Toast.makeText(getActivity(),
-                    "Connection to Play Services failed.", Toast.LENGTH_SHORT)
+                    R.string.connection_to_google_play_failed, Toast.LENGTH_SHORT)
                     .show();
 
             Log.e(TAG,
