@@ -356,7 +356,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
                 Plus plus =
                         new Plus.Builder(httpTransport, jsonFactory, credential).setApplicationName(
-                                "ytd-android").build();
+                                Constants.APP_NAME).build();
 
                 try {
                     return plus.people().get("me").execute();
@@ -409,7 +409,7 @@ public class MainActivity extends Activity implements UploadsListFragment.Callba
 
                 YouTube yt =
                         new YouTube.Builder(httpTransport, jsonFactory, credential).setApplicationName(
-                                "ytd-android").build();
+                                Constants.APP_NAME).build();
 
                 try {
                     ChannelListResponse clr = yt.channels().list("contentDetails").setMine(true).execute();
